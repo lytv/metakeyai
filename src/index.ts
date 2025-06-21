@@ -1,7 +1,5 @@
-import { app, Tray, Menu, globalShortcut, clipboard, Notification, nativeImage, BrowserWindow, screen } from 'electron';
-import path from 'path';
+import { app, Tray, Menu, globalShortcut, clipboard, nativeImage, BrowserWindow, screen, ipcMain } from 'electron';
 import fs from 'fs';
-import os from 'os';
 import { callOpenAIForQuickEdit, callWhisperApi } from './openai-api';
 import { config } from './config';
 import { AudioRecorder } from './audio-recorder';
@@ -19,7 +17,7 @@ declare const PASTILLE_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 let tray: Tray | null = null;
 let recorder: AudioRecorder | null = null;
-let visualizerWindow: BrowserWindow | null = null;
+let visualizerWindow: null = null;
 let pastilleWindow: BrowserWindow | null = null;
 let clipboardHistory: ClipboardHistory | null = null;
 
@@ -71,8 +69,8 @@ const showPastille = () => {
   let y = cursorPosition.y - 60;
   
   // Keep pastille on screen
-  if (x + 350 > screenWidth) {
-    x = cursorPosition.x - 370; // Show to the left of cursor
+  if (x + 520 > screenWidth) {
+    x = cursorPosition.x - 540; // Show to the left of cursor
   }
   if (y < 0) {
     y = cursorPosition.y + 20; // Show below cursor
@@ -93,23 +91,41 @@ const showPastille = () => {
   console.log('👁️ Pastille window shown at cursor position');
 };
 
+// Utility to position pill near current cursor
+const positionPillNearCursor = () => {
+  if (!pastilleWindow) return;
+  const cursorPosition = screen.getCursorScreenPoint();
+  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+  let x = cursorPosition.x + 20;
+  let y = cursorPosition.y - 80;
+  if (x + 520 > screenWidth) x = cursorPosition.x - 540;
+  if (y < 0) y = cursorPosition.y + 20;
+  pastilleWindow.setPosition(x, y);
+};
+
 const handleQuickEdit = async () => {
   console.log('🚀 handleQuickEdit triggered!');
   if (!config.OPENAI_API_KEY) {
     console.log('❌ No OpenAI API key found');
-    new Notification({ title: 'Configuration Error', body: 'OpenAI API key is not set.' }).show();
+    positionPillNearCursor();
+    pastilleWindow?.webContents.send('show-message', 'Configuration Error: OpenAI API key is not set.');
+    pastilleWindow?.show();
     return;
   }
   const text = clipboard.readText();
   console.log('📋 Clipboard text:', text ? `"${text}"` : 'EMPTY');
   if (!text) {
     console.log('❌ No text in clipboard');
-    new Notification({ title: 'Quick Edit', body: 'No text in clipboard!' }).show();
+    positionPillNearCursor();
+    pastilleWindow?.webContents.send('show-message', 'Quick Edit – No text in clipboard!');
+    pastilleWindow?.show();
     return;
   }
 
   console.log('⏳ Starting OpenAI processing...');
-  new Notification({ title: 'Quick Edit', body: 'Processing...' }).show();
+  positionPillNearCursor();
+  pastilleWindow?.webContents.send('show-processing', 'Processing');
+  pastilleWindow?.show();
 
   const response = await callOpenAIForQuickEdit(text);
   console.log('📝 OpenAI response:', response ? `"${response}"` : 'NULL');
@@ -117,10 +133,14 @@ const handleQuickEdit = async () => {
   if (response) {
     clipboard.writeText(response);
     console.log('✅ Text processed and copied to clipboard');
-    new Notification({ title: 'Quick Edit', body: 'Text processed! Ready to paste.' }).show();
+    positionPillNearCursor();
+    pastilleWindow?.webContents.send('show-message', response);
+    pastilleWindow?.show();
   } else {
     console.log('❌ Failed to process text');
-    new Notification({ title: 'Quick Edit', body: 'Failed to process text!' }).show();
+    positionPillNearCursor();
+    pastilleWindow?.webContents.send('show-message', 'Quick Edit – Failed to process text!');
+    pastilleWindow?.show();
   }
 };
 
@@ -139,14 +159,20 @@ const processRecording = async (filePath: string) => {
       clipboard.writeText(transcript);
       
       console.log(`💾 Transcript saved to ${transcriptPath} and copied to clipboard`);
-      new Notification({ title: 'Voice Record', body: 'Transcript saved and copied to clipboard!' }).show();
+      positionPillNearCursor();
+      pastilleWindow?.webContents.send('show-message', transcript);
+      pastilleWindow?.show();
     } else {
       console.log('❌ Failed to transcribe audio');
-      new Notification({ title: 'Voice Record', body: 'Failed to transcribe audio.' }).show();
+      positionPillNearCursor();
+      pastilleWindow?.webContents.send('show-message', 'Failed to transcribe audio.');
+      pastilleWindow?.show();
     }
   } catch (e) {
     console.error('❌ Error processing recording:', e);
-    new Notification({ title: 'Error', body: `Failed to process recording: ${e.message}` }).show();
+    positionPillNearCursor();
+    pastilleWindow?.webContents.send('show-message', `Error – Failed to process recording: ${e.message}`);
+    pastilleWindow?.show();
   } finally {
     // Clean up the recording file
     // fs.unlink(filePath, (err) => {
@@ -161,23 +187,23 @@ const handleVoiceRecord = () => {
   if (recorder && recorder.isRecording) {
     console.log('🛑 Stopping recording...');
     recorder.stop();
-    visualizerWindow?.hide();
-    new Notification({ title: 'Voice Record', body: 'Recording stopped. Processing...' }).show();
+    // Visualizer merged into pastille – no separate window needed
+    // stop showing waveform; pastille will switch to processing
+    positionPillNearCursor();
+    pastilleWindow?.webContents.send('show-processing', 'Processing');
+    pastilleWindow?.show();
   } else {
     console.log('🎙️ Starting recording...');
     recorder = new AudioRecorder();
     recorder.start();
 
-    // Show and position the visualizer window
-    const cursorPosition = screen.getCursorScreenPoint();
-    console.log('🖱️ Cursor position:', cursorPosition);
-    visualizerWindow?.setPosition(cursorPosition.x + 20, cursorPosition.y + 20);
-    visualizerWindow?.show();
-    console.log('👁️ Visualizer window shown');
+    // Tell pastille to enter recording mode with waveform
+    positionPillNearCursor();
+    pastilleWindow?.webContents.send('start-recording', 'Recording... Press Ctrl+Alt+W to stop.');
+    pastilleWindow?.show();
 
     recorder.on('audio-data', (data: Buffer) => {
-      // console.log('🔊 Audio data received:', data.length, 'bytes'); // Too verbose
-      visualizerWindow?.webContents.send('audio-data', data);
+      pastilleWindow?.webContents.send('audio-data', data);
     });
 
     recorder.on('finished', (filePath: string) => {
@@ -188,11 +214,11 @@ const handleVoiceRecord = () => {
 
     recorder.on('error', (error: any) => {
       console.log('❌ Recording error:', error);
-      new Notification({ title: 'Recording Error', body: `An error occurred: ${error.message}`}).show();
+      positionPillNearCursor();
+      pastilleWindow?.webContents.send('show-message', `Recording Error – ${error.message}`);
+      pastilleWindow?.show();
       recorder = null; // Reset recorder
     });
-
-    new Notification({ title: 'Voice Record', body: 'Recording... Press Ctrl+Alt+W to stop.' }).show();
   }
 };
 
@@ -215,34 +241,35 @@ app.on('ready', () => {
   
   // Create the visualizer window
   console.log('🪟 Creating visualizer window...');
-  visualizerWindow = new BrowserWindow({
-    width: 200,
-    height: 60,
-    frame: false,
-    transparent: true,
-    alwaysOnTop: true,
-    show: false,
-    resizable: false,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false, // Needed for ipcRenderer in visualizer.ts without a preload script
-    },
-  });
+  // Visualizer merged into pastille – no separate window needed
+  // let visualizerWindow = new BrowserWindow({
+  //   width: 200,
+  //   height: 60,
+  //   frame: false,
+  //   transparent: true,
+  //   alwaysOnTop: true,
+  //   show: false,
+  //   resizable: false,
+  //   webPreferences: {
+  //     nodeIntegration: true,
+  //     contextIsolation: false, // Needed for ipcRenderer in visualizer.ts without a preload script
+  //   },
+  // });
 
-  visualizerWindow.loadURL(VISUALIZER_WINDOW_WEBPACK_ENTRY);
-  visualizerWindow.setIgnoreMouseEvents(true); // Make the window click-through
-  console.log('✅ Visualizer window created');
+  // visualizerWindow.loadURL(VISUALIZER_WINDOW_WEBPACK_ENTRY);
+  // visualizerWindow.setIgnoreMouseEvents(true); // Make the window click-through
+  // console.log('✅ Visualizer window created');
   
   // Create the pastille window
   console.log('🪟 Creating pastille window...');
   pastilleWindow = new BrowserWindow({
-    width: 350,
-    height: 50,
+    width: 500,
+    height: 70,
     frame: false,
     transparent: true,
-    alwaysOnTop: true,
+    alwaysOnTop: false,
     show: false,
-    resizable: false,
+    resizable: true,
     skipTaskbar: true,
     webPreferences: {
       nodeIntegration: true,
@@ -251,7 +278,8 @@ app.on('ready', () => {
   });
 
   pastilleWindow.loadURL(PASTILLE_WINDOW_WEBPACK_ENTRY);
-  pastilleWindow.setIgnoreMouseEvents(true); // Make the window click-through
+  // Allow mouse events so user can drag the pill
+  pastilleWindow.setIgnoreMouseEvents(false);
   
   // Initialize pastille with current clipboard content once it's ready
   pastilleWindow.webContents.once('did-finish-load', () => {
@@ -288,14 +316,11 @@ app.on('ready', () => {
   tray.setContextMenu(contextMenu);
   console.log('✅ Tray created');
   
-  new Notification({
-      title: 'MetaKeyAI',
-      body: 'Running in background\nCtrl+Alt+Q for quick edit\nCtrl+Alt+W for voice record\nCtrl+Alt+C to show clipboard\nCtrl+Alt+Right/Left for clipboard history'
-  }).show();
+  showPillNotification('MetaKeyAI running in background\nCtrl+Alt+Q: Quick edit\nCtrl+Alt+W: Voice record\nCtrl+Alt+C: Show clipboard\nCtrl+Alt+←/→: Clipboard history');
 
   if (!config.OPENAI_API_KEY) {
     console.log('⚠️ No OpenAI API key found in config');
-    new Notification({ title: 'Configuration Warning', body: 'OpenAI API key not set. Voice and edit features will not work.' }).show();
+    showPillNotification('Configuration Warning – OpenAI API key not set. Voice and edit features will not work.');
   } else {
     console.log('✅ OpenAI API key found in config');
   }
@@ -319,6 +344,33 @@ app.on('ready', () => {
   } else {
     console.log('✅ All global shortcuts registered successfully');
   }
+
+  // Add IPC listener for update-clipboard
+  ipcMain.on('update-clipboard', (event, text) => {
+    console.log('📋 Received update-clipboard event:', text);
+    clipboard.writeText(text);
+    showPastille();
+  });
+
+  // Add IPC listener for expand-pastille
+  ipcMain.on('expand-pastille', () => {
+    if (pastilleWindow) {
+      const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+      const targetWidth = Math.round(screenWidth * 0.7);
+      const targetHeight = Math.round(screenHeight * 0.6);
+      pastilleWindow.setAlwaysOnTop(true);
+      pastilleWindow.setSize(targetWidth, targetHeight, true);
+      pastilleWindow.center();
+    }
+  });
+
+  // Add IPC listener for collapse-pastille
+  ipcMain.on('collapse-pastille', () => {
+    if (pastilleWindow) {
+      pastilleWindow.setSize(500, 70, true);
+      pastilleWindow.setAlwaysOnTop(false);
+    }
+  });
 });
 
 // Since there are no windows, we don't need to handle 'window-all-closed'
@@ -337,3 +389,23 @@ app.on('will-quit', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+/**
+ * Shows a pill-style notification instead of the system notification.
+ * Positions it near the bottom-right of the primary display.
+ */
+const showPillNotification = (message: string) => {
+  if (!pastilleWindow) {
+    console.warn('Pastille window not ready, cannot show pill notification');
+    return;
+  }
+
+  const { width: screenWidth, height: screenHeight } = screen.getPrimaryDisplay().workAreaSize;
+
+  const x = screenWidth - 500; // leave some margin
+  const y = screenHeight - 100;
+
+  pastilleWindow.setPosition(x, y);
+  pastilleWindow.webContents.send('show-message', message);
+  pastilleWindow.show();
+};
