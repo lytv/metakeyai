@@ -352,6 +352,13 @@ app.on('ready', () => {
     showPastille();
   });
 
+  // Add IPC listener for update-clipboard-draft (real-time editing)
+  ipcMain.on('update-clipboard-draft', (event, text) => {
+    console.log('📝 Received update-clipboard-draft event:', text.substring(0, 50) + '...');
+    clipboard.writeText(text);
+    // Don't show pastille for draft updates to avoid interrupting editing
+  });
+
   // Add IPC listener for expand-pastille
   ipcMain.on('expand-pastille', () => {
     if (pastilleWindow) {
@@ -369,6 +376,16 @@ app.on('ready', () => {
     if (pastilleWindow) {
       pastilleWindow.setSize(500, 70, true);
       pastilleWindow.setAlwaysOnTop(false);
+    }
+  });
+
+  // Add IPC listener for clipboard navigation from control bar
+  ipcMain.on('clipboard-navigate', (event, direction) => {
+    console.log('🔄 Received clipboard-navigate event:', direction);
+    if (direction === 'next') {
+      handleClipboardNext();
+    } else if (direction === 'previous') {
+      handleClipboardPrevious();
     }
   });
 });
