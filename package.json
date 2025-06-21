@@ -5,11 +5,15 @@
   "description": "My Electron application description",
   "main": ".webpack/main",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "make": "electron-forge make",
-    "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts,.tsx ."
+    "start": "npm run setup:python && electron-forge start",
+    "package": "npm run setup:python && electron-forge package",
+    "make": "npm run setup:python && electron-forge make",
+    "publish": "npm run setup:python && electron-forge publish",
+    "lint": "eslint --ext .ts,.tsx .",
+    "setup:python": "node scripts/setup-python.js",
+    "clean:python": "rm -rf python-env",
+    "dev": "electron-forge start",
+    "postinstall": "node scripts/setup-python.js || echo 'Python setup skipped'"
   },
   "keywords": [],
   "author": {
@@ -31,6 +35,7 @@
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "@vercel/webpack-asset-relocator-loader": "^1.7.3",
+    "copy-webpack-plugin": "^13.0.0",
     "css-loader": "^6.11.0",
     "electron": "36.5.0",
     "eslint": "^8.57.1",

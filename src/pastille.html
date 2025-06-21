@@ -46,6 +46,38 @@
             border-color: rgba(255, 255, 255, 0.3);
         }
 
+        .pastille:hover:not(.expanded) .settings-btn {
+            opacity: 1;
+        }
+
+        .settings-btn {
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            opacity: 0;
+            font-size: 12px;
+            -webkit-app-region: no-drag;
+            flex-shrink: 0;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .pastille.expanded .settings-btn {
+            display: none;
+        }
+
         .pastille.expanded {
             width: calc(100vw - 48px);
             height: calc(100vh - 48px);
@@ -423,6 +455,7 @@
         <canvas id="waveform" class="wave hidden"></canvas>
         <div id="content" class="content">No clipboard content</div>
         <div id="counter" class="counter">0/0</div>
+        <button class="settings-btn" id="settings-btn" title="Settings">⚙️</button>
 
         <!-- Expanded State -->
         <div class="editor-container">
@@ -463,6 +496,10 @@
                     <div class="shortcut-item">
                         <span class="shortcut-key">Ctrl+Alt+E</span>
                         <span>Speak</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <button class="nav-btn" id="spell-book-btn" title="Open Python Spell Book" style="width: 24px; height: 20px; margin-left: 8px;">🧙‍♂️</button>
+                        <span>Spells</span>
                     </div>
                 </div>
             </div>

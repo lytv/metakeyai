@@ -10,6 +10,16 @@ import { rendererConfig } from './webpack.renderer.config';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    extraResource: [
+      'resources',
+      'requirements.txt'
+    ],
+    // Ignore Python environment during ASAR packaging (it should be external)
+    ignore: [
+      /python-env/,
+      /\.pyc$/,
+      /__pycache__/
+    ],
   },
   rebuildConfig: {},
   makers: [
@@ -39,6 +49,16 @@ const config: ForgeConfig = {
             html: './src/pastille.html',
             js: './src/pastille.ts',
             name: 'pastille_window',
+          },
+          {
+            html: './src/settings.html',
+            js: './src/settings.ts',
+            name: 'settings_window',
+          },
+          {
+            html: './src/spell-book.html',
+            js: './src/spell-book.ts',
+            name: 'spell_book_window',
           },
         ],
       },

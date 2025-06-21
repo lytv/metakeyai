@@ -32,6 +32,8 @@ class PastilleRenderer {
   private navCounter: HTMLElement;
   private navPrevBtn: HTMLButtonElement;
   private navNextBtn: HTMLButtonElement;
+  private settingsBtn: HTMLButtonElement;
+  private spellBookBtn: HTMLButtonElement;
   
   // State management
   private currentEntry: ClipboardEntry | null = null;
@@ -64,6 +66,8 @@ class PastilleRenderer {
     this.navCounter = document.getElementById('nav-counter')!;
     this.navPrevBtn = document.getElementById('nav-prev') as HTMLButtonElement;
     this.navNextBtn = document.getElementById('nav-next') as HTMLButtonElement;
+    this.settingsBtn = document.getElementById('settings-btn') as HTMLButtonElement;
+    this.spellBookBtn = document.getElementById('spell-book-btn') as HTMLButtonElement;
 
     // Set canvas sizes to match styles
     this.waveCanvas.width = 300;
@@ -177,6 +181,20 @@ class PastilleRenderer {
 
     this.navNextBtn.addEventListener('click', () => {
       pastilleIpcRenderer.send('clipboard-navigate', 'next');
+    });
+
+    // Settings button
+    this.settingsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      pastilleIpcRenderer.send('open-settings');
+    });
+
+    // Spell book button
+    this.spellBookBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      pastilleIpcRenderer.send('open-spell-book');
     });
   }
 
