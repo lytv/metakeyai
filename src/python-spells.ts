@@ -180,46 +180,8 @@ export class PythonSpellCaster {
   }
 
   private setupKeyboardShortcuts(): void {
-    console.log('⌨️ Setting up spell casting shortcuts...');
-
-    // Quick cast slots (Ctrl+Alt+1 through Ctrl+Alt+9)
-    for (let i = 1; i <= 9; i++) {
-      const shortcut = `CommandOrControl+Alt+${i}`;
-      
-      globalShortcut.register(shortcut, async () => {
-        console.log(`🎯 Quick cast slot ${i} activated`);
-        
-        try {
-          // Get current clipboard content
-          const { clipboard } = require('electron');
-          const clipboardContent = clipboard.readText();
-          
-          const result = await this.castQuickSpell(i, clipboardContent);
-          
-          // Show result notification
-          this.showSpellResult(result);
-          
-        } catch (error) {
-          console.error(`❌ Quick cast ${i} failed:`, error);
-          this.showSpellError(`Quick Cast ${i}`, (error as Error).message);
-        }
-      });
-    }
-
-    // Special spell shortcuts
-    globalShortcut.register('CommandOrControl+Alt+A', async () => {
-      await this.castSpellByCategory('analysis');
-    });
-
-    globalShortcut.register('CommandOrControl+Alt+D', async () => {
-      await this.castSpellByCategory('data');
-    });
-
-    globalShortcut.register('CommandOrControl+Alt+T', async () => {
-      await this.castSpellByCategory('text');
-    });
-
-    console.log('✅ Spell shortcuts registered');
+    console.log('⌨️ Spell shortcuts will be managed by ShortcutsManager');
+    // Shortcuts are now handled by the global ShortcutsManager to allow customization
   }
 
   private async castSpellByCategory(category: string): Promise<void> {

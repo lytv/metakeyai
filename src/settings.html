@@ -260,6 +260,151 @@
         .shortcut-desc {
             color: rgba(255, 255, 255, 0.7);
         }
+
+        /* Shortcuts Customization */
+        .shortcuts-category {
+            margin-bottom: 24px;
+        }
+
+        .shortcuts-category-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .shortcut-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .shortcut-row:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .shortcut-info {
+            flex: 1;
+        }
+
+        .shortcut-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2px;
+        }
+
+        .shortcut-description {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .shortcut-key-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shortcut-key-display {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', monospace;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .shortcut-key-display:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #4CAF50;
+        }
+
+        .shortcut-key-display.editing {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+
+        .shortcut-key-display:empty,
+        .shortcut-key-display[data-empty="true"] {
+            background: rgba(255, 152, 0, 0.1);
+            border-color: rgba(255, 152, 0, 0.3);
+            color: rgba(255, 152, 0, 0.8);
+            font-style: italic;
+        }
+
+        .shortcut-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .shortcut-btn {
+            padding: 4px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .shortcut-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .shortcut-btn.reset {
+            color: #ff9800;
+        }
+
+        .shortcut-btn.reset:hover {
+            background: rgba(255, 152, 0, 0.2);
+            border-color: #ff9800;
+        }
+
+        .shortcut-recording {
+            background: rgba(76, 175, 80, 0.1);
+            border: 2px solid #4CAF50;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+
+        .shortcut-conflict {
+            background: rgba(244, 67, 54, 0.1);
+            border-color: #f44336;
+        }
+
+        .shortcut-conflict-message {
+            font-size: 11px;
+            color: #f44336;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -351,34 +496,19 @@
             </div>
         </div>
 
-        <!-- Keyboard Shortcuts Reference -->
-        <div class="shortcuts">
-            <div class="shortcuts-title">⌨️ Keyboard Shortcuts</div>
-            <div class="shortcut-list">
-                <div class="shortcut-item">
-                    <span class="shortcut-desc">Quick Edit</span>
-                    <span class="shortcut-key">Ctrl+Alt+Q</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-desc">Voice Record</span>
-                    <span class="shortcut-key">Ctrl+Alt+W</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-desc">Text-to-Speech</span>
-                    <span class="shortcut-key">Ctrl+Alt+E</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-desc">Show Clipboard</span>
-                    <span class="shortcut-key">Ctrl+Alt+C</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-desc">Previous Item</span>
-                    <span class="shortcut-key">Ctrl+Alt+←</span>
-                </div>
-                <div class="shortcut-item">
-                    <span class="shortcut-desc">Next Item</span>
-                    <span class="shortcut-key">Ctrl+Alt+→</span>
-                </div>
+        <!-- Keyboard Shortcuts Configuration -->
+        <div class="section">
+            <div class="section-title">⌨️ Keyboard Shortcuts</div>
+            <div class="section-description">
+                Customize keyboard shortcuts for all MetaKeyAI features. Click on any shortcut to change it.
+            </div>
+            
+            <div id="shortcuts-container">
+                <!-- Shortcuts will be loaded dynamically -->
+            </div>
+            
+            <div class="form-group">
+                <button class="btn" id="reset-shortcuts-btn">🔄 Reset All Shortcuts</button>
             </div>
         </div>
 
