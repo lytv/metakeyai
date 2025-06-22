@@ -150,4 +150,39 @@ export class ClipboardHistory extends EventEmitter {
     console.log('🧹 Clipboard history cleared.');
     this.emit('history-cleared');
   }
+
+  public deleteCurrentEntry(): ClipboardEntry | null {
+    if (this.history.length === 0 || this.currentIndex < 0) {
+      console.log('🗑️ No entry to delete.');
+      return null;
+    }
+  
+    const deletedEntry = this.history.splice(this.currentIndex, 1)[0];
+    console.log('🗑️ Deleted entry:', deletedEntry.text.substring(0, 30) + '...');
+  
+    // If the history is now empty
+    if (this.history.length === 0) {
+      this.currentIndex = -1;
+      this.lastClipboardText = '';
+      this.isInternalChange = true;
+      clipboard.clear();
+    } else {
+      // If the index is now out of bounds (we deleted the last item),
+      // move it to the new last item.
+      if (this.currentIndex >= this.history.length) {
+        this.currentIndex = this.history.length - 1;
+      }
+      // The currentIndex now points to the next item, which is correct.
+      // Let's update the system clipboard with the new current item.
+      const newCurrentEntry = this.history[this.currentIndex];
+      this.lastClipboardText = newCurrentEntry.text;
+      this.isInternalChange = true;
+      clipboard.writeText(newCurrentEntry.text);
+    }
+  
+    console.log('📋 Clipboard history updated after deletion, entries:', this.history.length, 'currentIndex:', this.currentIndex);
+    this.emit('history-updated', this.getCurrentEntry()); 
+    
+    return deletedEntry;
+  }
 } 

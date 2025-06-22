@@ -81,6 +81,20 @@ const handleClipboardClear = () => {
   }
 };
 
+const handleClipboardDeleteCurrent = () => {
+  console.log('🗑️ handleClipboardDeleteCurrent triggered!');
+  if (clipboardHistory) {
+    clipboardHistory.deleteCurrentEntry();
+    
+    // Refresh the pastille to show the new state
+    showPastille(); 
+
+    setTimeout(() => {
+      pastilleWindow?.webContents.send('show-message', 'Current entry deleted');
+    }, 100);
+  }
+};
+
 const showPastille = () => {
   if (!pastilleWindow || !clipboardHistory) return;
   
@@ -467,6 +481,7 @@ app.on('ready', async () => {
     'clipboard-next': handleClipboardNext,
     'clipboard-previous': handleClipboardPrevious,
     'clipboard-clear': handleClipboardClear,
+    'clipboard-delete-current': handleClipboardDeleteCurrent,
     'clipboard-next-alt1': handleClipboardNext,
     'clipboard-previous-alt1': handleClipboardPrevious,
     'clipboard-next-alt2': handleClipboardNext,

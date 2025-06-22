@@ -89,6 +89,14 @@ export class ShortcutsManager {
         currentKey: 'CommandOrControl+Alt+Down',
         category: 'clipboard'
       },
+      {
+        id: 'clipboard-delete-current',
+        name: 'Delete Current Entry',
+        description: 'Delete the currently selected entry from clipboard history',
+        defaultKey: 'CommandOrControl+Alt+Up',
+        currentKey: 'CommandOrControl+Alt+Up',
+        category: 'clipboard'
+      },
       
       // Additional Navigation (Linux workspace style)
       {
