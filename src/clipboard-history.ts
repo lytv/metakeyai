@@ -9,13 +9,13 @@ export interface ClipboardEntry {
 
 export class ClipboardHistory extends EventEmitter {
   private history: ClipboardEntry[] = [];
-  private currentIndex: number = -1;
-  private maxEntries: number = 50;
-  private lastClipboardText: string = '';
+  private currentIndex = -1;
+  private maxEntries = 50;
+  private lastClipboardText = '';
   private checkInterval: NodeJS.Timeout | null = null;
-  private isInternalChange: boolean = false;
+  private isInternalChange = false;
 
-  constructor(maxEntries: number = 50) {
+  constructor(maxEntries = 50) {
     super();
     this.maxEntries = maxEntries;
     
@@ -134,5 +134,20 @@ export class ClipboardHistory extends EventEmitter {
       this.checkInterval = null;
     }
     this.removeAllListeners();
+  }
+
+  public clearHistory(): void {
+    this.history = [];
+    this.currentIndex = -1;
+    this.lastClipboardText = ''; // Also clear the last tracked text
+    
+    // We can also clear the system clipboard
+    // Be cautious with this, as it might not be expected by the user.
+    // Let's make it an option or just clear our internal history.
+    // For now, let's just clear our history.
+    // clipboard.clear();
+
+    console.log('🧹 Clipboard history cleared.');
+    this.emit('history-cleared');
   }
 } 

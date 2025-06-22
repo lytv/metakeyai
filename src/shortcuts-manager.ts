@@ -81,6 +81,14 @@ export class ShortcutsManager {
         currentKey: 'CommandOrControl+Alt+Left',
         category: 'clipboard'
       },
+      {
+        id: 'clipboard-clear',
+        name: 'Clear Clipboard History',
+        description: 'Clear all entries from the clipboard history',
+        defaultKey: 'CommandOrControl+Alt+Down',
+        currentKey: 'CommandOrControl+Alt+Down',
+        category: 'clipboard'
+      },
       
       // Additional Navigation (Linux workspace style)
       {

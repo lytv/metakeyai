@@ -65,6 +65,22 @@ const handleShowClipboard = () => {
   showPastille(); // Show current clipboard state
 };
 
+const handleClipboardClear = () => {
+  console.log('🧹 handleClipboardClear triggered!');
+  if (clipboardHistory) {
+    clipboardHistory.clearHistory();
+    
+    // Refresh the pastille to show the cleared state
+    showPastille(); 
+
+    // Optionally, show a confirmation message as well
+    // We can use the pastille for this to be more integrated
+    setTimeout(() => {
+      pastilleWindow?.webContents.send('show-message', 'Clipboard history cleared');
+    }, 100); // Small delay to ensure it appears after the clear
+  }
+};
+
 const showPastille = () => {
   if (!pastilleWindow || !clipboardHistory) return;
   
@@ -450,6 +466,7 @@ app.on('ready', async () => {
     'clipboard-show': handleShowClipboard,
     'clipboard-next': handleClipboardNext,
     'clipboard-previous': handleClipboardPrevious,
+    'clipboard-clear': handleClipboardClear,
     'clipboard-next-alt1': handleClipboardNext,
     'clipboard-previous-alt1': handleClipboardPrevious,
     'clipboard-next-alt2': handleClipboardNext,
