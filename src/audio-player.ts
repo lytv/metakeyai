@@ -75,6 +75,10 @@ export class AudioPlayer extends EventEmitter {
     } else if (platform === 'win32') {
       // Windows
       return [
+        // More versatile players first
+        { name: 'ffplay', command: 'ffplay', args: (file: string) => ['-nodisp', '-autoexit', file] },
+        { name: 'mpv', command: 'mpv', args: (file: string) => ['--no-video', '--really-quiet', file] },
+        // Default powershell player for WAV
         { name: 'powershell', command: 'powershell', args: (file: string) => ['-c', `(New-Object Media.SoundPlayer '${file}').PlaySync()`] }
       ];
     } else {

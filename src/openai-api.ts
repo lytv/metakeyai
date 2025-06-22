@@ -57,7 +57,7 @@ export async function callOpenAIForQuickEdit(text: string): Promise<string | nul
   }
 }
 
-export async function callTextToSpeechApi(text: string, voice: string = 'coral'): Promise<string | null> {
+export async function callTextToSpeechApi(text: string, voice = 'coral'): Promise<string | null> {
   console.log('🔊 callTextToSpeechApi called with text length:', text.length, 'voice:', voice);
   
   if (!config.OPENAI_API_KEY) {
@@ -75,10 +75,10 @@ export async function callTextToSpeechApi(text: string, voice: string = 'coral')
   };
 
   const data = {
-    model: 'gpt-4o-mini-tts',
+    model: 'tts-1',
     voice: voice,
     input: truncatedText,
-    response_format: 'wav', // WAV for faster response and better compatibility
+    response_format: 'mp3', // WAV for faster response and better compatibility
     instructions: 'Speak in a clear and natural tone.'
   };
 
@@ -100,7 +100,7 @@ export async function callTextToSpeechApi(text: string, voice: string = 'coral')
     console.log(`✅ TTS API Response status: ${response.status}`);
     
     // Save the audio to a temporary file
-    const audioFilePath = path.join(tmpdir(), `tts_${Date.now()}.wav`);
+    const audioFilePath = path.join(tmpdir(), `tts_${Date.now()}.mp3`);
     fs.writeFileSync(audioFilePath, Buffer.from(response.data));
     
     console.log('💾 Audio saved to:', audioFilePath);
