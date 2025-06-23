@@ -25,13 +25,14 @@ export class AudioRecorder extends EventEmitter {
     this.filePath = join(tmpdir(), `recording_${Date.now()}.wav`);
     console.log('📁 Recording file path:', this.filePath);
 
-    // Use sox directly with child_process
+    // Sử dụng sox để ghi âm thành WAV với input waveaudio
     const soxArgs = [
-      '-d', // default input device
-      '-t', 'wav', // output format
+      '-t', 'waveaudio', // input device trên Windows
+      'default',        // thiết bị mặc định
+      '-t', 'wav',      // output format
       this.filePath,
-      'rate', '16000', // sample rate
-      'channels', '1' // mono
+      'rate', '16000',  // sample rate
+      'channels', '1'   // mono
     ];
     
     console.log('🔧 Starting sox with args:', soxArgs);

@@ -142,7 +142,7 @@ export async function callWhisperApi(filePath: string): Promise<string | null> {
   const form = new FormData();
   form.append('file', fs.createReadStream(filePath), {
     filename: path.basename(filePath),
-    contentType: 'audio/wav',
+    contentType: 'audio/mpeg',
   });
   form.append('model', config.WHISPER_MODEL);
 
