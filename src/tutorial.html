@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Metakeyai</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+        h1, h2 {
+            color: #569cd6;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+        }
+        .category {
+            margin-bottom: 2rem;
+            background-color: #252526;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        .shortcut {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #333;
+        }
+        .shortcut:last-child {
+            border-bottom: none;
+        }
+        .shortcut-name {
+            font-weight: bold;
+        }
+        .shortcut-key {
+            background-color: #333;
+            color: #d4d4d4;
+            padding: 0.3rem 0.7rem;
+            border-radius: 5px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .description {
+            font-size: 0.9rem;
+            color: #9cdcfe;
+            margin-top: 0.2rem;
+        }
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+        .checkbox-container label {
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Metakeyai!</h1>
+        <p>This guide will walk you through the key features and shortcuts to help you get started.</p>
+
+        <div class="category">
+            <h2><img src="https://img.icons8.com/fluent/48/000000/robot.png" alt="AI Icon" style="vertical-align: middle; width: 32px; height: 32px; margin-right: 10px;">AI Features</h2>
+            <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Quick Edit</div>
+                    <div class="description">AI-powered text editing and improvement.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+Q</div>
+            </div>
+        </div>
+
+        <div class="category">
+            <h2><img src="https://img.icons8.com/color/48/000000/microphone.png" alt="Voice Icon" style="vertical-align: middle; width: 32px; height: 32px; margin-right: 10px;">Voice Features</h2>
+            <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Text to Speech</div>
+                    <div class="description">Convert clipboard text to speech.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+E</div>
+            </div>
+            <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Voice Record</div>
+                    <div class="description">Record voice and transcribe to text.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+W</div>
+            </div>
+        </div>
+
+        <div class="category">
+            <h2><img src="https://img.icons8.com/office/40/000000/clipboard.png" alt="Clipboard Icon" style="vertical-align: middle; width: 32px; height: 32px; margin-right: 10px;">Clipboard Management</h2>
+            <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Show Clipboard</div>
+                    <div class="description">Display current clipboard content.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+C</div>
+            </div>
+            <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Next Clipboard Entry</div>
+                    <div class="description">Navigate to the next item in your clipboard history.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+Right</div>
+            </div>
+            <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Previous Clipboard Entry</div>
+                    <div class="description">Navigate to the previous item in your clipboard history.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+Left</div>
+            </div>
+            <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Clear Clipboard History</div>
+                    <div class="description">Clear all entries from the clipboard history.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+Down</div>
+            </div>
+             <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Delete Current Entry</div>
+                    <div class="description">Delete the currently selected entry from clipboard history.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+Up</div>
+            </div>
+        </div>
+
+        <div class="category">
+            <h2><img src="https://img.icons8.com/color/48/000000/magic-wand.png" alt="Spells Icon" style="vertical-align: middle; width: 32px; height: 32px; margin-right: 10px;">Spells</h2>
+            <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Data Spells</div>
+                    <div class="description">Cast data processing spells.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+D</div>
+            </div>
+            <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Quick Spell 1-9</div>
+                    <div class="description">Cast a spell assigned to a quick slot.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+[1-9]</div>
+            </div>
+        </div>
+        
+        <div class="category">
+            <h2><img src="https://img.icons8.com/material-outlined/48/000000/navigation.png" alt="Navigation Icon" style="vertical-align: middle; width: 32px; height: 32px; margin-right: 10px;">App Navigation</h2>
+            <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Open Settings</div>
+                    <div class="description">Open the settings window.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+,</div>
+            </div>
+             <div class="shortcut">
+                <div>
+                    <div class="shortcut-name">Open Spell Book</div>
+                    <div class="description">Opens the Python Spell Book window.</div>
+                </div>
+                <div class="shortcut-key">CommandOrControl+Alt+,</div>
+            </div>
+        </div>
+
+
+        <div class="footer">
+            <p>You can customize these shortcuts in the Settings.</p>
+            <div class="checkbox-container">
+                <input type="checkbox" id="show-again-checkbox">
+                <label for="show-again-checkbox">Don't show this again</label>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Logic to handle the checkbox will be managed by the main process
+        const checkbox = document.getElementById('show-again-checkbox');
+        checkbox.addEventListener('change', (event) => {
+            // Send a message to the main process to save this preference
+            // This requires a preload script to expose the API
+            if (window.electronAPI && typeof window.electronAPI.setShowTutorial === 'function') {
+                 window.electronAPI.setShowTutorial(!event.target.checked);
+            }
+        });
+    </script>
+</body>
+</html> 
