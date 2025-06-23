@@ -134,14 +134,6 @@ export class ShortcutsManager {
       
       // Spell Categories
       {
-        id: 'spells-analysis',
-        name: 'Analysis Spells',
-        description: 'Cast analysis category spells',
-        defaultKey: 'CommandOrControl+Alt+A',
-        currentKey: 'CommandOrControl+Alt+A',
-        category: 'spells'
-      },
-      {
         id: 'spells-data',
         name: 'Data Spells',
         description: 'Cast data processing spells',
@@ -149,13 +141,22 @@ export class ShortcutsManager {
         currentKey: 'CommandOrControl+Alt+D',
         category: 'spells'
       },
+      // Navigation
       {
-        id: 'spells-text',
-        name: 'Text Spells',
-        description: 'Cast text processing spells',
-        defaultKey: 'CommandOrControl+Alt+T',
-        currentKey: 'CommandOrControl+Alt+T',
-        category: 'spells'
+        id: 'open-settings',
+        name: 'Open Settings',
+        description: 'Open the settings window',
+        defaultKey: 'CommandOrControl+,',
+        currentKey: 'CommandOrControl+,',
+        category: 'navigation'
+      },
+      {
+        id: 'open-spell-book',
+        name: 'Open Spell Book',
+        description: 'Opens the Python Spell Book window',
+        defaultKey: 'CommandOrControl+Alt+,',
+        currentKey: 'CommandOrControl+Alt+,',
+        category: 'navigation'
       }
     ];
 

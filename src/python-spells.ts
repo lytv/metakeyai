@@ -1,5 +1,5 @@
 import { PythonRunner, PythonRunOptions } from './python-runner';
-import { ipcMain, BrowserWindow, globalShortcut, dialog, app } from 'electron';
+import { ipcMain, BrowserWindow, globalShortcut, dialog, app, clipboard, Notification } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { config } from './config';
@@ -39,7 +39,6 @@ export class PythonSpellCaster {
 
   constructor() {
     this.pythonRunner = new PythonRunner();
-    this.spellBookPath = path.join(__dirname, 'spell_book.json');
     this.setupIpcHandlers();
   }
 
@@ -76,6 +75,10 @@ export class PythonSpellCaster {
 
   async initialize(): Promise<void> {
     console.log('🧙‍♂️ Initializing Python Spell Caster...');
+    
+    // Set the persistent path for the spell book
+    this.spellBookPath = path.join(app.getPath('userData'), 'spell_book.json');
+    console.log('📖 Spell book path set to:', this.spellBookPath);
     
     try {
       // Initialize Python environment first
@@ -196,7 +199,6 @@ export class PythonSpellCaster {
 
     // Use the first spell in the category (could be enhanced with a selection dialog)
     const spell = categorySpells[0];
-    const { clipboard } = require('electron');
     const clipboardContent = clipboard.readText();
     
     const result = await this.castSpell(spell.id, clipboardContent);
@@ -306,23 +308,21 @@ export class PythonSpellCaster {
   }
 
   private async handleSpellOutput(spell: PythonSpell, output: string): Promise<void> {
-    const { clipboard } = require('electron');
-
     switch (spell.outputFormat) {
       case 'replace':
         clipboard.writeText(output);
         console.log('📋 Replaced clipboard with spell output');
         break;
         
-      case 'append':
+      case 'append': {
         const currentClipboard = clipboard.readText();
         clipboard.writeText(currentClipboard + '\n\n' + output);
         console.log('📋 Appended spell output to clipboard');
         break;
+      }
         
       case 'text':
       case 'json':
-      default:
         clipboard.writeText(output);
         console.log('📋 Copied spell output to clipboard');
         break;
@@ -336,8 +336,6 @@ export class PythonSpellCaster {
     });
 
     // Also show system notification for quick feedback
-    const { Notification } = require('electron');
-    
     if (result.success) {
       new Notification({
         title: `✨ ${result.spellName}`,
@@ -354,7 +352,6 @@ export class PythonSpellCaster {
   }
 
   private showSpellError(spellName: string, error: string): void {
-    const { Notification } = require('electron');
     new Notification({
       title: `❌ ${spellName} Failed`,
       body: error,
@@ -367,18 +364,6 @@ export class PythonSpellCaster {
 
     const defaultSpells: PythonSpell[] = [
       {
-        id: 'text-analyzer',
-        name: 'Text Analyzer',
-        description: 'Analyze text for word count, complexity, and insights',
-        scriptFile: this.getScriptPath('text_analyzer.py'),
-        category: 'analysis',
-        icon: '📊',
-        requiresInput: true,
-        outputFormat: 'json',
-        estimatedTime: '< 1 second',
-        timeout: 10000
-      },
-      {
         id: 'data-processor',
         name: 'Data Processor',
         description: 'Process and analyze CSV, JSON, and other data formats',
@@ -389,182 +374,6 @@ export class PythonSpellCaster {
         outputFormat: 'json',
         estimatedTime: '1-3 seconds',
         timeout: 15000
-      },
-      {
-        id: 'word-counter',
-        name: 'Quick Word Count',
-        description: 'Count words, characters, and lines',
-        script: `
-import sys
-import json
-
-text = sys.stdin.read().strip()
-words = len(text.split())
-chars = len(text)
-chars_no_spaces = len(text.replace(' ', ''))
-lines = len(text.split('\\n'))
-
-result = {
-    'words': words,
-    'characters': chars,
-    'characters_no_spaces': chars_no_spaces,
-    'lines': lines
-}
-
-print(json.dumps(result, indent=2))
-        `,
-        category: 'text',
-        icon: '🔢',
-        requiresInput: true,
-        outputFormat: 'json',
-        estimatedTime: '< 1 second',
-        timeout: 5000
-      },
-      {
-        id: 'text-cleaner',
-        name: 'Text Cleaner',
-        description: 'Clean and format text (remove extra spaces, fix line breaks)',
-        script: `
-import sys
-import re
-
-text = sys.stdin.read()
-
-# Remove extra whitespace
-cleaned = re.sub(r'\\s+', ' ', text)
-# Fix line breaks
-cleaned = re.sub(r'\\n\\s*\\n', '\\n\\n', cleaned)
-# Trim
-cleaned = cleaned.strip()
-
-print(cleaned)
-        `,
-        category: 'text',
-        icon: '🧹',
-        requiresInput: true,
-        outputFormat: 'replace',
-        estimatedTime: '< 1 second',
-        timeout: 5000
-      },
-      {
-        id: 'json-formatter',
-        name: 'JSON Formatter',
-        description: 'Pretty-print and validate JSON data',
-        script: `
-import sys
-import json
-
-text = sys.stdin.read().strip()
-
-try:
-    data = json.loads(text)
-    formatted = json.dumps(data, indent=2, sort_keys=True)
-    print(formatted)
-except json.JSONDecodeError as e:
-    print(f"Invalid JSON: {e}")
-    sys.exit(1)
-        `,
-        category: 'data',
-        icon: '📝',
-        requiresInput: true,
-        outputFormat: 'replace',
-        estimatedTime: '< 1 second',
-        timeout: 5000
-      },
-      {
-        id: 'url-extractor',
-        name: 'URL Extractor',
-        description: 'Extract all URLs from text',
-        script: `
-import sys
-import re
-import json
-
-text = sys.stdin.read()
-urls = re.findall(r'https?://[^\\s]+', text)
-
-result = {
-    'urls': urls,
-    'count': len(urls),
-    'unique_urls': list(set(urls))
-}
-
-print(json.dumps(result, indent=2))
-        `,
-        category: 'text',
-        icon: '🔗',
-        requiresInput: true,
-        outputFormat: 'json',
-        estimatedTime: '< 1 second',
-        timeout: 5000
-      },
-      {
-        id: 'email-extractor',
-        name: 'Email Extractor',
-        description: 'Extract all email addresses from text',
-        script: `
-import sys
-import re
-import json
-
-text = sys.stdin.read()
-emails = re.findall(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b', text)
-
-result = {
-    'emails': emails,
-    'count': len(emails),
-    'unique_emails': list(set(emails)),
-    'domains': list(set([email.split('@')[1] for email in emails]))
-}
-
-print(json.dumps(result, indent=2))
-        `,
-        category: 'text',
-        icon: '📧',
-        requiresInput: true,
-        outputFormat: 'json',
-        estimatedTime: '< 1 second',
-        timeout: 5000
-      },
-      {
-        id: 'list-sorter',
-        name: 'List Sorter',
-        description: 'Sort lines of text alphabetically',
-        script: `
-import sys
-
-text = sys.stdin.read().strip()
-lines = [line.strip() for line in text.split('\\n') if line.strip()]
-sorted_lines = sorted(lines)
-
-print('\\n'.join(sorted_lines))
-        `,
-        category: 'text',
-        icon: '📋',
-        requiresInput: true,
-        outputFormat: 'replace',
-        estimatedTime: '< 1 second',
-        timeout: 5000
-      },
-      {
-        id: 'duplicate-remover',
-        name: 'Duplicate Remover',
-        description: 'Remove duplicate lines from text',
-        script: `
-import sys
-
-text = sys.stdin.read().strip()
-lines = [line.strip() for line in text.split('\\n') if line.strip()]
-unique_lines = list(dict.fromkeys(lines))  # Preserves order
-
-print('\\n'.join(unique_lines))
-        `,
-        category: 'text',
-        icon: '🗑️',
-        requiresInput: true,
-        outputFormat: 'replace',
-        estimatedTime: '< 1 second',
-        timeout: 5000
       },
       {
         id: 'translate-en-to-ja',
@@ -584,12 +393,15 @@ print('\\n'.join(unique_lines))
       this.spellBook.set(spell.id, spell);
     }
 
-    // Set up default quick slots
-    this.quickSlots[0] = this.spellBook.get('text-analyzer') || null;  // Ctrl+Alt+1
-    this.quickSlots[1] = this.spellBook.get('data-processor') || null; // Ctrl+Alt+2
-    this.quickSlots[2] = this.spellBook.get('word-counter') || null;    // Ctrl+Alt+3
-    this.quickSlots[3] = this.spellBook.get('text-cleaner') || null;    // Ctrl+Alt+4
-    this.quickSlots[4] = this.spellBook.get('json-formatter') || null;  // Ctrl+Alt+5
+    // Only set up default quick slots if the spell book doesn't exist yet (first run)
+    if (!fs.existsSync(this.spellBookPath)) {
+      console.log('💡 First run detected, setting up default quick slots.');
+      this.quickSlots[0] = this.spellBook.get('data-processor') || null;
+      this.quickSlots[1] = this.spellBook.get('translate-en-to-ja') || null;
+      for (let i = 2; i < 9; i++) {
+        this.quickSlots[i] = null;
+      }
+    }
 
     console.log(`✅ Registered ${defaultSpells.length} default spells`);
   }
@@ -622,15 +434,8 @@ print('\\n'.join(unique_lines))
   private async saveSpellBook(): Promise<void> {
     try {
       const customSpells = Array.from(this.spellBook.values())
-        .filter(spell => !spell.id.startsWith('text-analyzer') && 
-                        !spell.id.startsWith('data-processor') &&
-                        !spell.id.startsWith('word-counter') &&
-                        !spell.id.startsWith('text-cleaner') &&
-                        !spell.id.startsWith('json-formatter') &&
-                        !spell.id.startsWith('url-extractor') &&
-                        !spell.id.startsWith('email-extractor') &&
-                        !spell.id.startsWith('list-sorter') &&
-                        !spell.id.startsWith('duplicate-remover'));
+        .filter(spell => !spell.id.startsWith('data-processor') && 
+                        !spell.id.startsWith('translate-en-to-ja'));
 
       const data = {
         spells: customSpells,
