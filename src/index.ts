@@ -23,9 +23,11 @@ declare const SETTINGS_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 declare const SPELL_BOOK_WINDOW_WEBPACK_ENTRY: string;
 declare const SPELL_BOOK_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
+const SETTINGS_FILE_PATH = path.join(app.getPath('userData'), 'settings.json');
+
 let tray: Tray | null = null;
 let recorder: AudioRecorder | null = null;
-let visualizerWindow: null = null;
+const visualizerWindow: BrowserWindow | null = null;
 let pastilleWindow: BrowserWindow | null = null;
 let settingsWindow: BrowserWindow | null = null;
 let spellBookWindow: BrowserWindow | null = null;
@@ -36,6 +38,19 @@ let shortcutsManager: ShortcutsManager | null = null;
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
   app.quit();
+}
+
+function loadSettingsFromFile() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE_PATH)) {
+      const fileContent = fs.readFileSync(SETTINGS_FILE_PATH, 'utf-8');
+      const loadedSettings = JSON.parse(fileContent);
+      Object.assign(config, loadedSettings);
+      console.log('✅ Settings loaded from', SETTINGS_FILE_PATH);
+    }
+  } catch (error) {
+    console.error('❌ Failed to load settings, using defaults:', error);
+  }
 }
 
 const handleClipboardNext = () => {
@@ -357,6 +372,8 @@ const handleTextToSpeech = async () => {
 };
 
 app.on('ready', async () => {
+  loadSettingsFromFile(); // Load settings at the very beginning
+
   console.log('🚀 App ready event triggered');
   
   // Initialize clipboard history
@@ -617,15 +634,16 @@ app.on('ready', async () => {
   });
 
   ipcMain.on('save-settings', (event, newSettings) => {
-    console.log('💾 Saving settings from dashboard...');
+    console.log('💾 Saving settings to runtime and file...');
     try {
-      // Update config object (note: this only updates runtime, not persistent storage)
-      config.OPENAI_API_KEY = newSettings.OPENAI_API_KEY;
-      config.QUICK_EDIT_MODEL_OPENAI = newSettings.QUICK_EDIT_MODEL_OPENAI;
-      config.WHISPER_MODEL = newSettings.WHISPER_MODEL;
-      config.TTS_VOICE = newSettings.TTS_VOICE;
+      // Update runtime config
+      Object.assign(config, newSettings);
+
+      // Write to file
+      const settingsJson = JSON.stringify(newSettings, null, 2); // Pretty format
+      fs.writeFileSync(SETTINGS_FILE_PATH, settingsJson, 'utf-8');
       
-      console.log('✅ Settings updated successfully');
+      console.log('✅ Settings saved successfully to:', SETTINGS_FILE_PATH);
       event.reply('settings-saved', true, 'Settings saved successfully!');
     } catch (error) {
       console.error('❌ Error saving settings:', error);
