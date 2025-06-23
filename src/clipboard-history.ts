@@ -57,22 +57,12 @@ export class ClipboardHistory extends EventEmitter {
     // Add to beginning of array
     this.history.unshift(entry);
     
-    // Adjust current index when new entry is added (shift all indices by 1)
-    if (this.currentIndex >= 0) {
-      this.currentIndex += 1;
-    }
-    // If this is the first entry or we want to point to the new entry
-    if (this.history.length === 1) {
-      this.currentIndex = 0;
-    }
+    // Always point to the new entry, which is at the start of the array
+    this.currentIndex = 0;
 
     // Limit history size
     if (this.history.length > this.maxEntries) {
       this.history = this.history.slice(0, this.maxEntries);
-      // Adjust index if it's beyond the new size
-      if (this.currentIndex >= this.history.length) {
-        this.currentIndex = this.history.length - 1;
-      }
     }
 
     console.log('📋 Clipboard history updated, entries:', this.history.length, 'currentIndex:', this.currentIndex);

@@ -1,7 +1,20 @@
 import type { Configuration } from 'webpack';
+import CopyWebpackPlugin from 'copy-webpack-plugin';
+import path from 'path';
 
 import { rules } from './webpack.rules';
 import { plugins } from './webpack.plugins';
+
+plugins.push(
+  new CopyWebpackPlugin({
+    patterns: [
+      {
+        from: path.resolve(__dirname, 'resources', 'python_scripts'),
+        to: path.resolve(__dirname, '.webpack', 'main', 'python_scripts'),
+      },
+    ],
+  })
+);
 
 export const mainConfig: Configuration = {
   /**

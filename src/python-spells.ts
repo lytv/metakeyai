@@ -2,6 +2,7 @@ import { PythonRunner, PythonRunOptions } from './python-runner';
 import { ipcMain, BrowserWindow, globalShortcut, dialog, app } from 'electron';
 import path from 'path';
 import fs from 'fs';
+import { config } from './config';
 
 export interface PythonSpell {
   id: string;
@@ -214,10 +215,20 @@ export class PythonSpellCaster {
     const startTime = Date.now();
 
     try {
+      const env: Record<string, string> = {
+        PYTHONPATH: process.env.PYTHONPATH || '',
+        PATH: process.env.PATH || '',
+        PYTHONIOENCODING: 'utf-8',
+      };
+      if (config.OPENAI_API_KEY) {
+        env.OPENAI_API_KEY = config.OPENAI_API_KEY;
+      }
+
       // Prepare Python run options
       const runOptions: PythonRunOptions = {
         timeout: spell.timeout || 30000,
-        input: spell.requiresInput !== false ? input : undefined
+        input: spell.requiresInput !== false ? input : undefined,
+        env: env
       };
 
       if (spell.script) {
@@ -554,6 +565,17 @@ print('\\n'.join(unique_lines))
         outputFormat: 'replace',
         estimatedTime: '< 1 second',
         timeout: 5000
+      },
+      {
+        id: 'translate-en-to-ja',
+        name: 'Translate English to Japanese',
+        description: 'Translate clipboard text from English to Japanese using a DSPy program.',
+        scriptFile: this.getScriptPath('translator_en_to_ja.py'),
+        category: 'Translation',
+        icon: '🌐',
+        requiresInput: true,
+        outputFormat: 'replace',
+        estimatedTime: '< 15s'
       }
     ];
 
@@ -706,10 +728,19 @@ print('\\n'.join(unique_lines))
     const startTime = Date.now();
     
     try {
-      // Prepare Python run options
+      const env: Record<string, string> = {
+        PYTHONPATH: process.env.PYTHONPATH || '',
+        PATH: process.env.PATH || '',
+        PYTHONIOENCODING: 'utf-8',
+      };
+      if (config.OPENAI_API_KEY) {
+        env.OPENAI_API_KEY = config.OPENAI_API_KEY;
+      }
+
       const runOptions: PythonRunOptions = {
-        timeout: spellData.timeout || 10000,
-        input: input
+        timeout: spellData.timeout || 15000,
+        input: spellData.requiresInput !== false ? input : undefined,
+        env: env
       };
 
       let result;
