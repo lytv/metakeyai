@@ -171,68 +171,55 @@ export class ShortcutsManager {
       });
     }
 
-    // Load saved shortcuts or use defaults
-    await this.loadShortcuts();
-
-    // Register shortcuts with handlers
+    // Register shortcuts with handlers, but do not load from file here.
+    // The main process will pass the configuration.
     for (const shortcutData of defaultShortcuts) {
       const handler = handlers[shortcutData.id];
       if (handler) {
-        const shortcut: ShortcutConfig = {
-          ...shortcutData,
-          handler
-        };
-        
-        // Use saved key if available, otherwise use default
-        const savedShortcut = this.shortcuts.get(shortcutData.id);
-        if (savedShortcut) {
-          shortcut.currentKey = savedShortcut.currentKey;
-        }
-        
-        this.shortcuts.set(shortcutData.id, shortcut);
+        this.shortcuts.set(shortcutData.id, { ...shortcutData, handler });
       }
     }
 
-    // Register all shortcuts
-    await this.registerAllShortcuts();
-    
+    // The initial registration will be done after applying the config.
     this.isInitialized = true;
-    console.log('✅ Shortcuts Manager initialized with', this.shortcuts.size, 'shortcuts');
+    console.log('✅ Shortcuts Manager initialized with', this.shortcuts.size, 'default shortcuts');
   }
 
-  private async loadShortcuts(): Promise<void> {
-    try {
-      if (fs.existsSync(this.configPath)) {
-        const data = fs.readFileSync(this.configPath, 'utf8');
-        const savedShortcuts = JSON.parse(data);
-        
-        for (const shortcut of savedShortcuts) {
-          this.shortcuts.set(shortcut.id, shortcut);
-        }
-        
-        console.log('📖 Loaded shortcuts configuration');
-      }
-    } catch (error) {
-      console.warn('⚠️ Could not load shortcuts configuration:', error);
-    }
-  }
-
-  private async saveShortcuts(): Promise<void> {
-    try {
-      const shortcutsArray = Array.from(this.shortcuts.values()).map(shortcut => ({
+  public getShortcutConfiguration(): { id: string, key: string }[] {
+    const config = [];
+    for (const shortcut of this.shortcuts.values()) {
+      config.push({
         id: shortcut.id,
-        name: shortcut.name,
-        description: shortcut.description,
-        defaultKey: shortcut.defaultKey,
-        currentKey: shortcut.currentKey,
-        category: shortcut.category
-      }));
-      
-      fs.writeFileSync(this.configPath, JSON.stringify(shortcutsArray, null, 2));
-      console.log('💾 Saved shortcuts configuration');
-    } catch (error) {
-      console.error('❌ Failed to save shortcuts configuration:', error);
+        key: shortcut.currentKey,
+      });
     }
+    return config;
+  }
+
+  public applyShortcutConfiguration(savedShortcuts: { id: string, key: string }[]): void {
+    if (!this.isInitialized) {
+      console.warn('⚠️ applyShortcutConfiguration called before initialization');
+      return;
+    }
+
+    console.log('⚙️ Applying new shortcut configuration...');
+    
+    // Create a map for quick lookup
+    const savedMap = new Map(savedShortcuts.map(s => [s.id, s.key]));
+
+    // Update the currentKey for each shortcut
+    for (const shortcut of this.shortcuts.values()) {
+      if (savedMap.has(shortcut.id)) {
+        const newKey = savedMap.get(shortcut.id);
+        if (shortcut.currentKey !== newKey) {
+          shortcut.currentKey = newKey;
+          console.log(`  > ${shortcut.name} updated to: ${newKey || 'None'}`);
+        }
+      }
+    }
+
+    // Re-register all shortcuts with the new keys
+    this.registerAllShortcuts();
   }
 
   private async registerAllShortcuts(): Promise<void> {
@@ -283,7 +270,7 @@ export class ShortcutsManager {
         globalShortcut.unregister(shortcut.currentKey);
       }
       shortcut.currentKey = '';
-      await this.saveShortcuts();
+      await this.registerAllShortcuts();
       console.log(`✅ Unassigned shortcut ${shortcut.name}`);
       return true;
     }
@@ -308,7 +295,7 @@ export class ShortcutsManager {
       
       if (success) {
         shortcut.currentKey = newKey;
-        await this.saveShortcuts();
+        await this.registerAllShortcuts();
         console.log(`✅ Updated shortcut ${shortcut.name}: ${newKey}`);
         return true;
       } else {
@@ -349,7 +336,6 @@ export class ShortcutsManager {
     }
     
     await this.registerAllShortcuts();
-    await this.saveShortcuts();
     console.log('🔄 Reset all shortcuts to defaults');
   }
 
@@ -383,7 +369,6 @@ export class ShortcutsManager {
 
     ipcMain.handle('reset-all-shortcuts', async () => {
       await this.resetAllShortcuts();
-      return true;
     });
 
     ipcMain.handle('test-shortcut-key', (event, key: string) => {

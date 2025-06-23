@@ -5,6 +5,7 @@ interface Settings {
   QUICK_EDIT_MODEL_OPENAI: string;
   WHISPER_MODEL: string;
   TTS_VOICE: string;
+  shortcuts: { id: string, key: string }[];
 }
 
 interface ShortcutConfig {
@@ -36,7 +37,8 @@ class SettingsRenderer {
     OPENAI_API_KEY: '',
     QUICK_EDIT_MODEL_OPENAI: 'gpt-4o',
     WHISPER_MODEL: 'whisper-1',
-    TTS_VOICE: 'ballad'
+    TTS_VOICE: 'ballad',
+    shortcuts: []
   };
 
   constructor() {
@@ -93,7 +95,12 @@ class SettingsRenderer {
     // IPC listeners
     settingsIpcRenderer.on('settings-loaded', (event: any, settings: Settings) => {
       this.currentSettings = settings;
+      this.shortcuts = settings.shortcuts.map(s => ({
+        ...this.shortcuts.find(def => def.id === s.id)!,
+        currentKey: s.key,
+      }));
       this.populateForm();
+      this.renderShortcuts();
       this.validateApiKey();
     });
 
@@ -130,11 +137,18 @@ class SettingsRenderer {
   private saveSettings() {
     console.log('💾 Saving settings...');
     
+    // Collect shortcut configurations from the UI
+    const shortcutConfigs = this.shortcuts.map(shortcut => ({
+      id: shortcut.id,
+      key: shortcut.currentKey,
+    }));
+
     const settings: Settings = {
       OPENAI_API_KEY: this.getApiKey(),
       QUICK_EDIT_MODEL_OPENAI: this.quickEditModelSelect.value,
       WHISPER_MODEL: this.whisperModelSelect.value,
-      TTS_VOICE: this.ttsVoiceSelect.value
+      TTS_VOICE: this.ttsVoiceSelect.value,
+      shortcuts: shortcutConfigs,
     };
 
     console.log('📤 Sending settings to main process:', {
@@ -248,13 +262,10 @@ class SettingsRenderer {
 
   // Shortcuts Management
   private async loadShortcuts() {
-    console.log('⌨️ Loading shortcuts...');
-    try {
-      this.shortcuts = await settingsIpcRenderer.invoke('get-shortcuts');
-      this.renderShortcuts();
-    } catch (error) {
-      console.error('❌ Failed to load shortcuts:', error);
-    }
+    // This is now handled by the main process loading settings
+    const allShortcuts: ShortcutConfig[] = await settingsIpcRenderer.invoke('get-shortcuts');
+    this.shortcuts = allShortcuts;
+    this.renderShortcuts();
   }
 
   private renderShortcuts() {

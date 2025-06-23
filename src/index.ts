@@ -45,8 +45,16 @@ function loadSettingsFromFile() {
     if (fs.existsSync(SETTINGS_FILE_PATH)) {
       const fileContent = fs.readFileSync(SETTINGS_FILE_PATH, 'utf-8');
       const loadedSettings = JSON.parse(fileContent);
+      
+      // Apply general settings
       Object.assign(config, loadedSettings);
       console.log('✅ Settings loaded from', SETTINGS_FILE_PATH);
+
+      // Pass shortcut settings to the manager
+      if (loadedSettings.shortcuts && shortcutsManager) {
+        console.log('⚙️ Applying shortcuts from settings file...');
+        shortcutsManager.applyShortcutConfiguration(loadedSettings.shortcuts);
+      }
     }
   } catch (error) {
     console.error('❌ Failed to load settings, using defaults:', error);
@@ -565,6 +573,9 @@ app.on('ready', async () => {
   
   await shortcutsManager.initialize(shortcutHandlers);
 
+  // After initializing the manager with default shortcuts, load and apply the saved settings
+  loadSettingsFromFile();
+
   // Add IPC listener for update-clipboard
   ipcMain.on('update-clipboard', (event, text) => {
     console.log('📋 Received update-clipboard event:', text);
@@ -628,7 +639,8 @@ app.on('ready', async () => {
       OPENAI_API_KEY: config.OPENAI_API_KEY || '',
       QUICK_EDIT_MODEL_OPENAI: config.QUICK_EDIT_MODEL_OPENAI,
       WHISPER_MODEL: config.WHISPER_MODEL,
-      TTS_VOICE: config.TTS_VOICE
+      TTS_VOICE: config.TTS_VOICE,
+      shortcuts: shortcutsManager ? shortcutsManager.getShortcutConfiguration() : []
     };
     event.reply('settings-loaded', settings);
   });
@@ -638,6 +650,11 @@ app.on('ready', async () => {
     try {
       // Update runtime config
       Object.assign(config, newSettings);
+
+      // Apply shortcuts immediately
+      if (newSettings.shortcuts && shortcutsManager) {
+        shortcutsManager.applyShortcutConfiguration(newSettings.shortcuts);
+      }
 
       // Write to file
       const settingsJson = JSON.stringify(newSettings, null, 2); // Pretty format
