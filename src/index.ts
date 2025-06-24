@@ -34,6 +34,107 @@ let spellBookWindow: BrowserWindow | null = null;
 let clipboardHistory: ClipboardHistory | null = null;
 let audioPlayer: AudioPlayer | null = null;
 let shortcutsManager: ShortcutsManager | null = null;
+let lastTTSFilePath: string | null = null;
+
+const AUDIO_HISTORY_DIR = path.join(__dirname, '../audio_history');
+
+function getTodayDir() {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  return path.join(AUDIO_HISTORY_DIR, `${dd}${mm}${yyyy}`);
+}
+
+async function moveAudioToHistory(audioFilePath: string) {
+  const todayDir = getTodayDir();
+  if (!fs.existsSync(todayDir)) {
+    fs.mkdirSync(todayDir, { recursive: true });
+  }
+  const fileName = path.basename(audioFilePath);
+  const destPath = path.join(todayDir, fileName);
+  try {
+    fs.renameSync(audioFilePath, destPath);
+  } catch (err: any) {
+    if (err.code === 'EXDEV') {
+      fs.copyFileSync(audioFilePath, destPath);
+      fs.unlinkSync(audioFilePath);
+    } else {
+      throw err;
+    }
+  }
+  lastTTSFilePath = destPath;
+  return destPath;
+}
+
+async function replayLastTTS() {
+  // Ưu tiên phát file vừa tạo nhất nếu có
+  if (lastTTSFilePath && fs.existsSync(lastTTSFilePath)) {
+    if (!audioPlayer) {
+      audioPlayer = new AudioPlayer();
+      audioPlayer.on('finished', () => {
+        positionPillNearCursor();
+        pastilleWindow?.webContents.send('show-message', 'Replay completed.');
+        pastilleWindow?.show();
+      });
+      audioPlayer.on('error', (error) => {
+        positionPillNearCursor();
+        pastilleWindow?.webContents.send('show-message', `Replay Error – ${error.message}`);
+        pastilleWindow?.show();
+      });
+      audioPlayer.on('stopped', () => {
+        // No action needed on stop for replay
+      });
+    }
+    await audioPlayer.play(lastTTSFilePath);
+    positionPillNearCursor();
+    pastilleWindow?.webContents.send('show-message', '🔊 Replaying last TTS audio...');
+    pastilleWindow?.show();
+    return;
+  }
+  // Nếu không có, fallback sang tìm file mới nhất trong thư mục
+  const todayDir = getTodayDir();
+  if (!fs.existsSync(todayDir)) {
+    positionPillNearCursor();
+    pastilleWindow?.webContents.send('show-message', 'No TTS audio found for today!');
+    pastilleWindow?.show();
+    return;
+  }
+  const files = fs.readdirSync(todayDir)
+    .filter(f => f.endsWith('.mp3'))
+    .map(f => ({
+      name: f,
+      time: fs.statSync(path.join(todayDir, f)).mtime.getTime()
+    }))
+    .sort((a, b) => b.time - a.time);
+  if (files.length === 0) {
+    positionPillNearCursor();
+    pastilleWindow?.webContents.send('show-message', 'No TTS audio found for today!');
+    pastilleWindow?.show();
+    return;
+  }
+  const lastFile = path.join(todayDir, files[0].name);
+  if (!audioPlayer) {
+    audioPlayer = new AudioPlayer();
+    audioPlayer.on('finished', () => {
+      positionPillNearCursor();
+      pastilleWindow?.webContents.send('show-message', 'Replay completed.');
+      pastilleWindow?.show();
+    });
+    audioPlayer.on('error', (error) => {
+      positionPillNearCursor();
+      pastilleWindow?.webContents.send('show-message', `Replay Error – ${error.message}`);
+      pastilleWindow?.show();
+    });
+    audioPlayer.on('stopped', () => {
+      // No action needed on stop for replay
+    });
+  }
+  await audioPlayer.play(lastFile);
+  positionPillNearCursor();
+  pastilleWindow?.webContents.send('show-message', '🔊 Replaying last TTS audio...');
+  pastilleWindow?.show();
+}
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -288,7 +389,7 @@ const handleVoiceRecord = () => {
 };
 
 const handleTextToSpeech = async () => {
-  console.log('🔊 handleTextToSpeech triggered!');
+  console.log('🎤 handleTextToSpeech triggered!');
   if (!config.OPENAI_API_KEY) {
     console.log('❌ No OpenAI API key found');
     positionPillNearCursor();
@@ -328,6 +429,9 @@ const handleTextToSpeech = async () => {
     console.log('🎵 TTS response:', audioFilePath ? `"${audioFilePath}"` : 'NULL');
 
     if (audioFilePath) {
+      // Move file vào thư mục lịch sử và cập nhật lastTTSFilePath ngay lập tức
+      const movedPath = await moveAudioToHistory(audioFilePath);
+      lastTTSFilePath = movedPath;
       console.log('🔊 Starting audio playback...');
       positionPillNearCursor();
       pastilleWindow?.webContents.send('show-message', '🔊 Playing audio... (Ctrl+Alt+E to stop)');
@@ -336,35 +440,23 @@ const handleTextToSpeech = async () => {
       // Initialize audio player if needed
       if (!audioPlayer) {
         audioPlayer = new AudioPlayer();
-        
         audioPlayer.on('finished', () => {
           console.log('✅ Audio playback finished');
           positionPillNearCursor();
           pastilleWindow?.webContents.send('show-message', 'Audio playback completed.');
           pastilleWindow?.show();
-          
-          // Clean up the temporary file
-          setTimeout(() => {
-            if (fs.existsSync(audioFilePath)) {
-              fs.unlinkSync(audioFilePath);
-              console.log('🗑️ Cleaned up temporary audio file');
-            }
-          }, 1000);
         });
-
         audioPlayer.on('error', (error) => {
           console.error('❌ Audio playback error:', error);
           positionPillNearCursor();
           pastilleWindow?.webContents.send('show-message', `Audio Error – ${error.message}`);
           pastilleWindow?.show();
         });
-
         audioPlayer.on('stopped', () => {
           console.log('🛑 Audio playback stopped');
         });
       }
-
-      await audioPlayer.play(audioFilePath);
+      await audioPlayer.play(movedPath);
     } else {
       console.log('❌ Failed to generate speech');
       positionPillNearCursor();
@@ -536,6 +628,7 @@ app.on('ready', async () => {
     'spell-slot-7': async () => { /* No spell assigned */ },
     'spell-slot-8': async () => { /* No spell assigned */ },
     'spell-slot-9': async () => { /* No spell assigned */ },
+    'tts-replay': replayLastTTS,
   };
   
   await shortcutsManager.initialize(shortcutHandlers);
@@ -669,6 +762,10 @@ app.on('ready', async () => {
     } catch (error) {
       console.error('❌ Voice test error:', error);
     }
+  });
+
+  ipcMain.on('replay-tts', () => {
+    replayLastTTS();
   });
 });
 

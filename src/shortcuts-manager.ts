@@ -45,6 +45,14 @@ export class ShortcutsManager {
         currentKey: 'CommandOrControl+Alt+E',
         category: 'voice'
       },
+      {
+        id: 'tts-replay',
+        name: 'Replay TTS',
+        description: 'Replay last TTS audio',
+        defaultKey: 'CommandOrControl+Alt+R',
+        currentKey: 'CommandOrControl+Alt+R',
+        category: 'voice'
+      },
       
       // Voice Features
       {

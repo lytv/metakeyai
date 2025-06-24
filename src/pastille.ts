@@ -94,6 +94,14 @@ class PastilleRenderer {
     this.setupEventListeners();
     this.setupEditorEvents();
     this.setupControlBarEvents();
+
+    // Replay button event
+    const replayBtn = document.getElementById('replay-btn');
+    if (replayBtn) {
+      replayBtn.addEventListener('click', () => {
+        window.electron?.ipcRenderer?.send('replay-tts');
+      });
+    }
   }
 
   private setupEventListeners() {
