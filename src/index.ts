@@ -621,13 +621,34 @@ app.on('ready', async () => {
       const clipboardContent = clipboard.readText();
       await pythonSpellCaster.castQuickSpell(2, clipboardContent);
     },
-    'spell-slot-3': async () => { /* No spell assigned */ },
-    'spell-slot-4': async () => { /* No spell assigned */ },
-    'spell-slot-5': async () => { /* No spell assigned */ },
-    'spell-slot-6': async () => { /* No spell assigned */ },
-    'spell-slot-7': async () => { /* No spell assigned */ },
-    'spell-slot-8': async () => { /* No spell assigned */ },
-    'spell-slot-9': async () => { /* No spell assigned */ },
+    'spell-slot-3': async () => { 
+      const clipboardContent = clipboard.readText();
+      await pythonSpellCaster.castQuickSpell(3, clipboardContent);
+    },
+    'spell-slot-4': async () => { 
+      const clipboardContent = clipboard.readText();
+      await pythonSpellCaster.castQuickSpell(4, clipboardContent);
+    },
+    'spell-slot-5': async () => { 
+      const clipboardContent = clipboard.readText();
+      await pythonSpellCaster.castQuickSpell(5, clipboardContent);
+    },
+    'spell-slot-6': async () => { 
+      const clipboardContent = clipboard.readText();
+      await pythonSpellCaster.castQuickSpell(6, clipboardContent);
+    },
+    'spell-slot-7': async () => { 
+      const clipboardContent = clipboard.readText();
+      await pythonSpellCaster.castQuickSpell(7, clipboardContent);
+    },
+    'spell-slot-8': async () => { 
+      const clipboardContent = clipboard.readText();
+      await pythonSpellCaster.castQuickSpell(8, clipboardContent);
+    },
+    'spell-slot-9': async () => { 
+      const clipboardContent = clipboard.readText();
+      await pythonSpellCaster.castQuickSpell(9, clipboardContent);
+    },
     'tts-replay': replayLastTTS,
   };
   

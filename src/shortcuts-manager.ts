@@ -1,5 +1,4 @@
-import { globalShortcut } from 'electron';
-import { ipcMain } from 'electron';
+import { globalShortcut , ipcMain } from 'electron';
 import fs from 'fs';
 import path from 'path';
 

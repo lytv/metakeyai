@@ -385,7 +385,18 @@ export class PythonSpellCaster {
         requiresInput: true,
         outputFormat: 'replace',
         estimatedTime: '< 15s'
-      }
+      },
+      {
+        id: 'explain-for-kids',
+        name: 'Explain for Kids',
+        description: 'Giải thích tiếng Anh đơn giản cho trẻ em bằng AI',
+        scriptFile: this.getScriptPath('explain_for_kids.py'),
+        category: 'text',
+        icon: '🧒',
+        requiresInput: true,
+        outputFormat: 'text',
+        estimatedTime: '<10s',
+      },
     ];
 
     // Add default spells to the spell book
@@ -404,6 +415,8 @@ export class PythonSpellCaster {
     }
 
     console.log(`✅ Registered ${defaultSpells.length} default spells`);
+    // Log tổng số spell thực tế
+    console.log(`📖 Spell book hiện có ${this.spellBook.size} spells`);
   }
 
   private async loadSpellBook(): Promise<void> {

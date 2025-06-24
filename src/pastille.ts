@@ -37,12 +37,12 @@ class PastilleRenderer {
   
   // State management
   private currentEntry: ClipboardEntry | null = null;
-  private originalText: string = '';
+  private originalText = '';
   private isEditing = false;
   private doubleClickTimeout: any = null;
   private clipboardUpdateTimeout: any = null;
-  private currentIndex: number = 0;
-  private totalCount: number = 0;
+  private currentIndex = 0;
+  private totalCount = 0;
 
   constructor() {
     this.pastilleElement = document.getElementById('pastille')!;
